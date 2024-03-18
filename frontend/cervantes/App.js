@@ -3,9 +3,13 @@ import {TouchableOpacity, Alert, Text, View, ScrollView, StyleSheet, Button, Dim
 import * as DocumentPicker from 'expo-document-picker';
 import RenderHtml from 'react-native-render-html';
 import axios from 'axios';
+import { adaptHTML, getData, storeData, listIds } from './util';
+
 
 export default function App() {
   const [HTML, SetHTML] = React.useState('');
+  const { width } = useWindowDimensions();
+
 
   const PickDocument = async () => {
     try {
@@ -20,64 +24,26 @@ export default function App() {
           size: file.size,
         });
 
-        const { data } = await axios.post('http://192.168.18.117:33/extract_html', formData, {
+        const { data } = await axios.post('http://172.20.10.10:33/extract_html', formData, {
           headers: {
             Accept: "application/json",
             "Content-Type": "multipart/form-data",
           },
         });
-        SetHTML(data.pages[0]);
+        let html = adaptHTML(data.pages[0], width/1.3);
+        //Save data to local storage with key uri. Add name to object to be saved
+        await storeData(file.name, data);
+        
+        const ids = listIds();
+        console.log(ids[0]);
+        let x = await getData(file.name);
+        console.log(x);
       }
 
     } catch (e) {
       console.log(e);
     }
   };
-  const { width } = useWindowDimensions();
-
-
-
-const adjustHtmlStylesForScreenSize = (htmlContent, originalWidthPt) => {
-  const screenWidth = 100; // Width of the screen in pixels
-  // Convert screen width from pixels to points (assuming 1pt = 1.333px for simplicity)
-  const screenWidthPt = screenWidth / 1.333;
-  const scaleFactor = screenWidthPt / originalWidthPt;
-
-  // Adjusts font-size, top, left, and width properties
-  const adjustStyle = (match, p1, offset, string) => {
-    const originalValue = parseFloat(p1);
-    const adjustedValue = originalValue * scaleFactor;
-    return match.replace(p1, adjustedValue.toFixed(2));
-  };
-
-  let adjustedHtmlContent = htmlContent
-    .replace(/font-size:(\d+(\.\d+)?)(pt|px)/g, adjustStyle)
-    .replace(/width:(\d+(\.\d+)?)(pt|px)/g, adjustStyle)
-    .replace(/top:(\d+(\.\d+)?)(pt|px)/g, adjustStyle)
-    .replace(/left:(\d+(\.\d+)?)(pt|px)/g, adjustStyle);
-
-  return adjustedHtmlContent;
-};
-
-function wrapWordsWithSpans(html) {
-  let wordId = 0;
-  // Split by " " to rudimentarily parse words; this could be enhanced with a more sophisticated regex for better accuracy.
-  return html.replace(/>([^<]+)</g, (match, textContent) =>
-    '>' + textContent.split(' ').map(word => {
-      // Ensure the word is not empty or just whitespace before wrapping
-      if (!word.trim()) return word;
-      const wrappedWord = `<span id="${wordId}">${word}</span>`;
-      wordId++;
-      return wrappedWord;
-    }).join(' ') + '<'
-  );
-}
-
- // Function to handle word press
- const onWordPress = (id, word) => {
-  console.log(`Pressed ${id}: ${word}`);
-  Alert.alert(`Pressed ${id}`, word);
-};
 
 const renderers = {
   span: ({ tnode, TDefaultRenderer, ...props }) => {
@@ -99,16 +65,13 @@ const renderers = {
     );
   },
 };
-
-
-
   return (
     <ScrollView>
         <Text>a todos los ciudadanos; pero eso </Text>
 
       <View style={styles.htmlContainer}>
-        <RenderHtml contentWidth={200}
-        source={{ html: wrapWordsWithSpans(adjustHtmlStylesForScreenSize(HTML)) }}
+        <RenderHtml contentWidth={width/4}
+        source={{ html: HTML }}
         renderers={renderers}
         />
       </View>
