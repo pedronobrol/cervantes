@@ -5,7 +5,7 @@ const HighlightedWord = ({ word }) => {
     if (!word) return null;
 
     const getWordParts = (word) => {
-        if (!word) return ['', '', ''];
+        if (!word || !word.trim()) return ['', '_', ''];
         const middleIndex = Math.floor(word.length / 2);
         let before, middle, after;
     
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
         alignItems: 'center', // And this horizontally
     },
     text: {
-        fontSize: 24,
+        fontSize: 42,
         color: '#000',
         fontWeight: 'bold'
     },

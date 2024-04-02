@@ -20,41 +20,94 @@ export default function Details() {
         currentWord: 0,
         currentWords: [],
     });
-    const [currentWord, setCurrentWord] = useState(0);
+    //const [currentWord, setCurrentWord] = useState(0); 
     const intervalId = useRef(null); // Using useRef to hold the interval ID
+    const preventIntervalCreation = useRef(false);
+
 
     const handleStart = async () => {
         setStart(false);
         createReadingInterval();
     }
 
+    const setCurrentWord = (word) => {
+        setBookState((prevState) => ({
+            ...prevState,
+            currentWord: word,
+        }));
+    }
+
     const createReadingInterval = () => {
         const wpm = 300; // Words per minute
-        const interval = 60000 / wpm;
+        const intervalDuration = 60000 / wpm;
+        
         // Clear any existing interval to avoid duplicates
         if (intervalId.current) clearInterval(intervalId.current);
+        
         intervalId.current = setInterval(() => {
-            if (currentWord < bookState.currentWords.length - 1) {
-                setCurrentWord((currWord) => currWord + 1);
-            } else {
-                clearInterval(intervalId.current); // Stop the interval at the end of the book
-            }
-        }, interval);
+            setBookState(prevState => {
+                const nextWordIndex = prevState.currentWord + 1;
+                
+                // Check if there are more words in the current page
+                if (nextWordIndex < prevState.currentWords.length) {
+                    return { ...prevState, currentWord: nextWordIndex };
+                } else {
+                    // No more words in the current page, move to the next page if possible
+                    const nextPageIndex = prevState.currentPage + 1;
+                    
+                    if (nextPageIndex <= prevState.book.pages.length) {
+                        const newCurrentWords = getWords(prevState.book.pages[nextPageIndex - 1]);
+                        
+                        // Automatically restart the reading from the new page
+                        // Notice we're not returning state here as we're setting it below after clearInterval
+                        clearInterval(intervalId.current);
+                        
+                        return {
+                            ...prevState,
+                            currentPage: nextPageIndex,
+                            currentWords: newCurrentWords,
+                            currentWord: 0, // Start from the first word of the new page
+                        };
+                    } else {
+                        // End of the book, handle accordingly
+                        console.log("Reached the end of the book.");
+                        clearInterval(intervalId.current);
+                        return prevState;
+                    }
+                }
+            });
+        }, intervalDuration);
     };
     
-    function onDoubleTapLeft(){
-        if (currentWord > 0) {
-            setCurrentWord((currWord) => currWord - 1);
-        }
-        console.log('left')
-    }
     
-    function onDoubleTapRight(){
-        if (currentWord < bookState.currentWords.length) {
-            setCurrentWord((currWord) => currWord + 1);
+
+   function onDoubleTapLeft() {
+    setBookState(prevState => {
+        if (prevState.currentWord > 0) {
+            const nextWord = prevState.currentWord - 1;
+            return { ...prevState, currentWord: nextWord };
+        } else {
+            // Optionally handle the case when you're at the start and can't go back further
+            return prevState;
         }
-        console.log('right')
-    }
+    });
+    console.log('left');
+}
+    
+function onDoubleTapRight() {
+    setBookState(prevState => {
+        if (prevState.currentWord < prevState.currentWords.length - 1) { // -1 because array indices start at 0
+            const nextWord = prevState.currentWord + 1;
+            return { ...prevState, currentWord: nextWord };
+        } else {
+            // Optionally handle the case when you're at the end and can't go forward further
+            return prevState;
+        }
+    });
+    console.log('right');
+}
+
+    
     function onTap(){
         if (start) {
             return;
@@ -92,13 +145,20 @@ export default function Details() {
     }, []);
 
     useEffect(() => {
-        // Assuming you have stored the interval ID in a state or ref called intervalId
+        if (!start && !preventIntervalCreation.current) {
+            // Only create the interval if it's not prevented
+            createReadingInterval();
+        }
+    
+        // Cleanup function to clear the interval when the component unmounts or before re-creating the interval
         return () => {
             if (intervalId.current) {
                 clearInterval(intervalId.current);
             }
         };
-    }, []);
+        // This effect should be re-run if `start` changes or if the current page changes, but not for every word change
+    }, [bookState.currentPage, start]);
+
 
     return (
         <View  style={styles.container}
@@ -109,6 +169,7 @@ export default function Details() {
                 <TouchableOpacity style={styles.back} onPress={back}>
                     <Icon name="chevron-left" size={32} color="#000" />
                 </TouchableOpacity>
+                <Text style={styles.page}>{bookState.currentPage}</Text>
                 <TouchableOpacity style={styles.play} onPress={() => setTapped(!tapped)}>
                     <Icon name="play-pause" size={32} color="#000" />
                 </TouchableOpacity>
@@ -126,9 +187,12 @@ export default function Details() {
                >
                  {({ remainingTime }) => <Text>{remainingTime}</Text>}
                </CountdownCircleTimer>
+               <TouchableOpacity style={styles.skip} onPress={handleStart}>
+                    <Text>Skip</Text>
+                </TouchableOpacity>
                </View>
             ) : (
-                <HighlightedWord word={bookState.currentWords[currentWord]} />
+                <HighlightedWord word={bookState.currentWords[bookState.currentWord]} />
             )
             }
             
@@ -170,4 +234,16 @@ const styles = StyleSheet.create({
             justifyContent: 'center',
             alignItems: 'center',
         },
+        page: {
+            top: 0,
+            left: 0,
+            fontWeight: 'bold',
+            fontSize: 22,
+            height: 40,
+            margin: 12,
+            padding: 10,
+          },
+        skip: {
+           marginTop: 20,
+        }
 });  
