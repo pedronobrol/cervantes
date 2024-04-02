@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { Alert, StyleSheet, View, FlatList, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, ActivityIndicator } from 'react-native';
 import { router, Link } from 'expo-router';
 import { PickDocument, listIds, getData, deleteData} from './utils';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function Page() {
