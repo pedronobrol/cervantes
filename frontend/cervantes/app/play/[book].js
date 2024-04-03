@@ -7,6 +7,7 @@ import { CountdownCircleTimer } from 'react-native-countdown-circle-timer';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTap } from '../hooks/useTap';
 import HighlightedWord from './HighlightedWord'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function Details() {
@@ -19,11 +20,21 @@ export default function Details() {
         currentPage: 0,
         currentWord: 0,
         currentWords: [],
+        wpm: 300,
     });
     //const [currentWord, setCurrentWord] = useState(0); 
     const intervalId = useRef(null); // Using useRef to hold the interval ID
     const preventIntervalCreation = useRef(false);
 
+    const saveStateToLocal = async () => {
+        // Implement this function to save the book state to local storage
+        // save to local storage new page number and current word as well as wpm
+        let book = bookState.book;
+        book.current_page = bookState.currentPage;
+        book.wpm = bookState.wpm;
+        book.current_word = bookState.currentWord;
+        await AsyncStorage.setItem(item.book, JSON.stringify(book));
+    }
 
     const handleStart = async () => {
         setStart(false);
@@ -38,7 +49,7 @@ export default function Details() {
     }
 
     const createReadingInterval = () => {
-        const wpm = 300; // Words per minute
+        const wpm = bookState.wpm;
         const intervalDuration = 60000 / wpm;
         
         // Clear any existing interval to avoid duplicates
@@ -122,12 +133,12 @@ function onDoubleTapRight() {
         try {
             let data = await getData(item.book);
             const newCurrentWords = getWords(data.pages[data.current_page - 1]);
-            console.log(newCurrentWords);
             setBookState({
                 book: data,
                 currentPage: data.current_page,
                 currentWord: data.current_word,
                 currentWords: newCurrentWords,
+                wpm: data.wpm,
             });
             setCurrentWord(data.current_word);
         } catch (error) {
@@ -135,7 +146,8 @@ function onDoubleTapRight() {
         }
     };
 
-    const back = () => {
+    const back = async () => {
+        await saveStateToLocal();
         router.push(`select/${item.book}`, {title: item.book});
       }
     

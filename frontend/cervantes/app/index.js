@@ -4,6 +4,7 @@ import { Alert, StyleSheet, View, FlatList, Text, TouchableOpacity, ScrollView, 
 import { router, Link } from 'expo-router';
 import { PickDocument, listIds, getData, deleteData} from './utils';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+//import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Page() {
   const [books, setBooks] = useState([]);
@@ -25,7 +26,7 @@ export default function Page() {
       book_list = [];
       setBooks([]);
       const ids = await listIds();
-      console.log(ids);
+      //console.log(ids);
       for (let index = 0; index < ids.length; index++){
         let id = ids[index];
         let data = await getData(id);
@@ -63,12 +64,13 @@ export default function Page() {
   
 
   useEffect(() => {
+    //AsyncStorage.clear();
     loadBooks();
   }, [])
   return (
     <SafeAreaView style={styles.container}>
       {/* Wrap content in a ScrollView to make it scrollable */}
-        <Text style={styles.title}>Uploaded Books</Text>
+        <Text style={styles.title}>Continue reading...</Text>
         {isLoading ? (
         <ActivityIndicator style={styles.loading} size="large" color="#0000ff" /> // Show loading indicator
       ) : books.length ? (

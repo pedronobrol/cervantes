@@ -55,7 +55,7 @@ export const getWords = (html) => {
   // Split by " " to rudimentarily parse words; this could be enhanced with a more sophisticated regex for better accuracy.
   html.replace(/>([^<]+)</g, (match, textContent) =>
     '>' + textContent.split(' ').map(word => {
-    words.push(word);
+      if (word.trim()) words.push(word);
     })
   );
   return words;
@@ -132,6 +132,7 @@ export const PickDocument = async () => {
       });
       data.current_page = 1;
       data.current_word = 0;
+      data.wpm = 300;
       await storeData(file.name, data);
       }
 
