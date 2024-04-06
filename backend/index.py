@@ -3,7 +3,7 @@ import os
 import fitz  # PyMuPDF
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB limit
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 10MB limit
 
 try:
     path = os.path.dirname(os.path.abspath(__file__))
@@ -24,7 +24,7 @@ def extract_html_method(pdf_file, start_page = 0):
         html_content = page.get_text('html')
         parsed_doc.append(html_content)
 
-    result = {"pages": parsed_doc, "total_pages": len(doc), "processed_pages": len(parsed_doc)}
+    result = {"pages": parsed_doc, "page_count": len(parsed_doc)}
     doc.close()
     return result
 

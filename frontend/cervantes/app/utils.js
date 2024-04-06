@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import axios, { all } from 'axios';
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+import he from 'he';
 
 const adjustHtmlStylesForScreenSize = (htmlContent, width) => {
     const originalWidth = htmlContent.match(/width:(\d+(\.\d+)?)(pt|px)/)
@@ -55,7 +56,7 @@ export const getWords = (html) => {
   // Split by " " to rudimentarily parse words; this could be enhanced with a more sophisticated regex for better accuracy.
   html.replace(/>([^<]+)</g, (match, textContent) =>
     '>' + textContent.split(' ').map(word => {
-      if (word.trim()) words.push(word);
+      if (word.trim()) words.push(he.decode(word));
     })
   );
   return words;
