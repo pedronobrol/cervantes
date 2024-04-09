@@ -69,8 +69,9 @@ export default function Page() {
   }, [])
   return (
     <SafeAreaView style={styles.container}>
-      {/* Wrap content in a ScrollView to make it scrollable */}
-        <Text style={styles.title}>Continue reading...</Text>
+        <Image style={styles.icon} source={require('../assets/icon.png')} />
+        <Text style={styles.iconText}>Turbo Reader</Text>
+        <Text style={styles.title}>Continue reading</Text>
         {isLoading ? (
         <ActivityIndicator style={styles.loading} size="large" color="#0000ff" /> // Show loading indicator
       ) : books.length ? (
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: 'bold',
     marginLeft: 15,
     marginTop: 10,
@@ -170,6 +171,18 @@ const styles = StyleSheet.create({
   dog: {
     margin: 'auto',
     alignSelf: 'center',
+  },
+  icon: {
+    width: 80,
+    height: 80,
+    alignSelf: 'center',
+    marginTop: 20,
+  },
+  iconText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   deleteButton: {
     position: 'absolute',
