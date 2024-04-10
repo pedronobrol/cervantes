@@ -89,44 +89,9 @@ export default function Page() {
   }, [])
   return (
     <SafeAreaView style={styles.container}>
-         <TouchableOpacity onPress={toggleMenu} style={styles.menuButton}>
-          <Icon name="menu" size={30} color="#000" />
-        </TouchableOpacity>
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={isMenuVisible}
-          onRequestClose={toggleMenu}
-         >
-          <View style={styles.menuContainer}>
-            <ScrollView style={styles.menuItems}>
-            <TouchableOpacity onPress={toggleMenu} style={styles.menuCloseButton}>
-              <Icon name="close" size={30} color="#000" />
-            </TouchableOpacity>
-            <Text style={styles.menuText}>What do you want to do?</Text>
-            <Link href="/" style={styles.menuItem}>How to use the app</Link>
-            <TouchableOpacity onPress={() => {
-            // Close the modal first to ensure the UI is responsive
-            toggleMenu();
-            // Delay the upload logic slightly to ensure the modal has time to close
-            setTimeout(() => {
-              uploadButton();
-            }, 1000); // Adjust delay as needed
-          }}>
-              <Text style={styles.menuItem}>Upload document</Text>
-            </TouchableOpacity>
-            <Link href="/" style={styles.menuItem}>Open URL</Link>
-            <Link href="/" style={styles.menuItem}>Paste text</Link>
-            <Link href="/" style={styles.menuItem}>Settings</Link>
-            </ScrollView>
-            {/* Add more menu items here */}
-          </View>
-        </Modal>
-        
         <Image style={styles.icon} source={require('../assets/icon.png')} />
         <Text style={styles.iconText}>Turbo Reader</Text>
-        {/* <Text style={styles.title}>Continue reading</Text> */}
-          {/* Search Bar */}
+ 
       <TextInput
         style={styles.searchBar}
         placeholder="Filter as you wish"
@@ -165,8 +130,8 @@ export default function Page() {
           </>
         )}
       {/* Fixed Button at the bottom */}
-      <TouchableOpacity style={styles.uploadButton} onPress={quickRead}>
-        <Text style={styles.buttonText}>Quick read</Text>
+      <TouchableOpacity style={styles.uploadButton} onPress={uploadButton}>
+        <Text style={styles.buttonText}>Upload document</Text>
       </TouchableOpacity>
      </SafeAreaView>
   );
