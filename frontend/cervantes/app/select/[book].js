@@ -6,7 +6,7 @@ import RenderHtml from 'react-native-render-html';
 import { getData, adaptHTML } from '../utils';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSwipe } from '../hooks/useSwipe'
-import WpmSelector from './WpmSelector'; 
+import WpmSelector from '../components/WpmSelector'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 

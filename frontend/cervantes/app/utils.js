@@ -139,5 +139,6 @@ export const PickDocument = async () => {
 
   } catch (e) {
     console.log(e);
+    throw e;
   }
 };

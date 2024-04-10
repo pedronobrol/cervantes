@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { Alert, StyleSheet, View, FlatList, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, ActivityIndicator } from 'react-native';
+import { Modal, Alert, StyleSheet, View, FlatList, TextInput, Text, TouchableOpacity, ScrollView, SafeAreaView, Image, ActivityIndicator } from 'react-native';
 import { router, Link } from 'expo-router';
 import { PickDocument, listIds, getData, deleteData} from './utils';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -9,13 +9,33 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 export default function Page() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(false); 
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(''); // State for search query
+  const filteredBooks = books.filter(book =>
+    book.title.toLowerCase().includes(searchQuery.toLowerCase())
+  ); // Filter books based on search query
 
   const uploadButton = async () => {
     //await AsyncStorage.clear();
     setIsLoading(true);
-    await PickDocument();
-    await loadBooks();
+    try {
+      await PickDocument();
+      await loadBooks();
+    } catch (error) {
+      console.error('Failed to pick document:', error);
+      Alert.alert('Failed to upload the document. Try again later.');
+      setIsLoading(false);
+    }
   }
+
+  const quickRead = async () => {
+    router.push('quickread');
+  }
+  
+  const toggleMenu = () => {
+    setIsMenuVisible(!isMenuVisible);
+  };
+
   const show = async (item) => {
     // pass item to show page
     router.push(`select/${item.title}`, {title: item.title});
@@ -69,14 +89,58 @@ export default function Page() {
   }, [])
   return (
     <SafeAreaView style={styles.container}>
+         <TouchableOpacity onPress={toggleMenu} style={styles.menuButton}>
+          <Icon name="menu" size={30} color="#000" />
+        </TouchableOpacity>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={isMenuVisible}
+          onRequestClose={toggleMenu}
+         >
+          <View style={styles.menuContainer}>
+            <ScrollView style={styles.menuItems}>
+            <TouchableOpacity onPress={toggleMenu} style={styles.menuCloseButton}>
+              <Icon name="close" size={30} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.menuText}>What do you want to do?</Text>
+            <Link href="/" style={styles.menuItem}>How to use the app</Link>
+            <TouchableOpacity onPress={() => {
+            // Close the modal first to ensure the UI is responsive
+            toggleMenu();
+            // Delay the upload logic slightly to ensure the modal has time to close
+            setTimeout(() => {
+              uploadButton();
+            }, 1000); // Adjust delay as needed
+          }}>
+              <Text style={styles.menuItem}>Upload document</Text>
+            </TouchableOpacity>
+            <Link href="/" style={styles.menuItem}>Open URL</Link>
+            <Link href="/" style={styles.menuItem}>Paste text</Link>
+            <Link href="/" style={styles.menuItem}>Settings</Link>
+            </ScrollView>
+            {/* Add more menu items here */}
+          </View>
+        </Modal>
+        
         <Image style={styles.icon} source={require('../assets/icon.png')} />
         <Text style={styles.iconText}>Turbo Reader</Text>
-        <Text style={styles.title}>Continue reading</Text>
+        {/* <Text style={styles.title}>Continue reading</Text> */}
+          {/* Search Bar */}
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Filter as you wish"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+
         {isLoading ? (
-        <ActivityIndicator style={styles.loading} size="large" color="#0000ff" /> // Show loading indicator
+        <>
+          <ActivityIndicator style={styles.loading} size="large" color="#0000ff" /> 
+        </>
       ) : books.length ? (
           <FlatList
-            data={books}
+            data={filteredBooks}
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
               <>
@@ -101,8 +165,8 @@ export default function Page() {
           </>
         )}
       {/* Fixed Button at the bottom */}
-      <TouchableOpacity style={styles.uploadButton} onPress={uploadButton}>
-        <Text style={styles.buttonText}>Upload Book</Text>
+      <TouchableOpacity style={styles.uploadButton} onPress={quickRead}>
+        <Text style={styles.buttonText}>Quick read</Text>
       </TouchableOpacity>
      </SafeAreaView>
   );
@@ -182,7 +246,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 0,
   },
   deleteButton: {
     position: 'absolute',
@@ -193,5 +257,56 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
+  menuButton: {
+    position: 'absolute',
+    left: 20,
+    top: 20,
+  },
+  menuContainer: {
+    flex: 1,
+    justifyContent: 'center', // Centers the children vertically in the container
+    alignItems: 'center', // Centers the children horizontally in the container
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background for modal overlay
+    padding: 0,
+  },
+  menuCloseButton: {
+    alignSelf: 'flex-end', // Positions the close button at the end of the container
+    marginTop: 50,
+    marginBottom: 20,
+    marginRight: 20,
+  },
+  menuItems: {
+    width: '100%', // Takes full width to align the text
+    backgroundColor: '#ffffff', // White background for the menu items area
+    borderRadius: 20, // Rounded corners for modern look
+    paddingVertical: 20, // Vertical padding for breathing space
+    paddingHorizontal: 10, // Horizontal padding for alignment
+  },
+  menuText: {
+    fontSize: 20, // Larger font for prominence
+    textAlign: 'center', // Center-align text for better readability
+    marginBottom: 20, // Spacing between the text and menu items
+  },
+  menuItem: {
+    fontSize: 18,
+    color: '#333333', // Dark text for better readability
+    padding: 10, // Padding around each menu item for tap ease
+    marginVertical: 5, // Spacing between menu items
+    backgroundColor: '#f2f2f2', // Slightly off-white background for each item
+    borderRadius: 10, // Rounded corners for each item
+    overflow: 'hidden', // Ensures the background does not bleed past the border radius
+    textAlign: 'center', // Center-align text
+    fontWeight: 'bold', // Bold font for prominence
+  },
+  searchBar: {
+    fontSize: 18,
+    borderColor: '#CCC',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    margin: 20,
+    marginBottom: 0, // Adjust based on your layout
+    backgroundColor: '#F9F9F9', // Light grey background
+  },
 });
