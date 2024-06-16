@@ -69,6 +69,15 @@ expo start
 - Zooming and Gestures: The app supports intuitive gestures including double-tap on the right or left side for navigation, single tap for play/pause, and pinch to zoom in and out for a customized reading experience.
 - Local Storage: All data, including the user's progress, is saved to the smartphone's local storage. This ensures that users can resume reading from where they left off.
 
+## Improvements
+- State Management: Address inefficiencies in managing app state for smoother interactions.
+- HTML Visualizer: Improve the PDF visualization approach, as the current HTML visualizer is not the most performant method.
+- Client-Side Processing: Consider handling everything on the client-side, especially with simpler formats like EPUB.
+- Best Practices: Follow coding standards for better readability and maintainability.
+- TypeScript: Use TypeScript for type safety and reduced bugs.
+
+**This project is a quick prototype for entertainment purposes and can be significantly enhanced.**
+
 ***
 
 **Note:** This project was developed as a **quick side project** and is **not production-ready**. The focus was on functionality rather than code optimization and best practices.
